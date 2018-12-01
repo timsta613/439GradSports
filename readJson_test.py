@@ -129,6 +129,35 @@ def get_all_3pt(Data):
 all_3pt = get_all_3pt(Data)
 print(all_3pt)
 
+# movement arg is output of get_movements(Data, eventID, shooterID)
+def get_shot_index(movement):
+    ball_z = movement[5]
+    index_highest = ball_z.index(max(ball_z)) # Finds location of highest point of ball during event
+    index_shot = index_highest
+    while True:
+        if ball_z[index_shot] - ball_z[index_shot-1] > 0:
+            index_shot -= 1
+        else:
+            break
+
+    return index_shot
+
+def get_catch_index(movement, shooterID):
+    shooter_x = movement[1]
+    shooter_y = movement[2]
+    ball_x = movement[3]
+    ball_y = movement[4]
+    shot_index = get_shot_index(movement)
+    catch_index = shot_index
+    while True:
+        idx = catch_index - 1
+        if np.sqrt((shooter_x[idx] - ball_x[idx])**2 + (shooter_y[idx] - ball_y[idx])**2) < 3
+            catch_index -= 1
+        else:
+            break
+
+    return catch_index
+
 def get_shooter_movement_5sec(Data, eventID, shooterID):
     movement=get_movements(Data, eventID, shooterID)
     index_highest=movement[5].index(max(movement[5]))#-27
