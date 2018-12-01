@@ -270,7 +270,7 @@ def ball_angle_at_release(Data, eventID, shooterID):
     return angle*57.2958
 
 #FOLLOWING FUNCTION GIVES HOW MANY SECONDS BEFORE THE SHOT THE BALL WAS WITH SHOOTER
-def seconds_caught(Data, eventID, shooterID):
+def frames_caught(Data, eventID, shooterID):
     movement=get_movements(Data, eventID, shooterID)
     miss_make=movement[0]
     index_highest=movement[5].index(max(movement[5]))
@@ -287,7 +287,7 @@ def seconds_caught(Data, eventID, shooterID):
     distballshooter=((np.array(ball_x)-np.array(shooter_x))**2 + (np.array(ball_y)-np.array(shooter_y))**2)**.5
 
     index_catch=np.where(distballshooter<1)[0][0]
-    time= (75-index_catch)/25
+    time= (75-index_catch)
     return time
 
 def plot_court(movement):
@@ -373,7 +373,23 @@ def closest_defender_velocity_nsecs(Data, eventID, shooterID, n):
     velocity=(defdistpast-defdistance)/n
     return velocity
 
-
+def catchandshoot(Data, eventID, shooterID):
+    secondscaught=frames_caught(Data, eventID, shooterID)
+    movement=get_movements(Data, eventID, shooterID)
+    miss_make=movement[0]
+    index_highest=movement[5].index(max(movement[5]))
+    index_shot=index_highest
+    while True:
+        if movement[5][index_shot]- movement[5][index_shot-1] > 0:
+            index_shot=index_shot-1
+        else:
+            break
+    ballz=movement[5][index_shot-secondscaught:index_shot]
+    if (all(i > 1 for i in ballz)):
+        return True
+    else:
+        return False
+   
 # def get_dist_matrix(Data, eventID, shooterID):
 
 
