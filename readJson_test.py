@@ -176,7 +176,7 @@ def shooter_velocity_between_frames(movement, shooterID, f1, f2):
         v = (loc2[0]-loc1[0], loc2[1]-loc1[1])
         distance_sum += np.sqrt(v[0]**2 + v[1]**2)
 
-    avg_velocity = velocity_sum / (0.04*(f2-f1))
+    avg_velocity = distance_sum / (0.04*(f2-f1))
 
     return avg_velocity
 
