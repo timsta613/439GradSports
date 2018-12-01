@@ -162,7 +162,7 @@ def get_shooter_movement_1sec(Data, eventID, shooterID):
     return [miss_make,shooter_x,shooter_y]
 
 def get_shooter_movement_nsec(Data, eventID, shooterID, n):
-    movement=get_movements(Data, eventID, shooterID, n)
+    movement=get_movements(Data, eventID, shooterID)
     index_highest=movement[5].index(max(movement[5]))#-27
     #27 points before the max height is shot point
     #can loop back to get local min
@@ -172,8 +172,8 @@ def get_shooter_movement_nsec(Data, eventID, shooterID, n):
             index_shot=index_shot-1
         else:
             break
-    shooter_x= movement[1][index_shot-n*25:index_shot]
-    shooter_y= movement[2][index_shot-n*25:index_shot]
+    shooter_x= movement[1][index_shot-int(n*25):index_shot]
+    shooter_y= movement[2][index_shot-int(n*25):index_shot]
     miss_make= movement[0]
     return [miss_make,shooter_x,shooter_y]
 
