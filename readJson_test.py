@@ -151,12 +151,35 @@ def get_catch_index(movement, shooterID):
     catch_index = shot_index
     while True:
         idx = catch_index - 1
-        if np.sqrt((shooter_x[idx] - ball_x[idx])**2 + (shooter_y[idx] - ball_y[idx])**2) < 3
+        if np.sqrt((shooter_x[idx] - ball_x[idx])**2 + (shooter_y[idx] - ball_y[idx])**2) < 3:
             catch_index -= 1
         else:
             break
 
     return catch_index
+
+def shooter_movement_between_frames(movement, shooterID, f1, f2):
+    shooter_x = movement[1][f1:f2]
+    shooter_y = movement[2][f1:f2]
+
+    return list(zip(shooter_x, shooter_y))
+
+def shooter_velocity_between_frames(movement, shooterID, f1, f2):
+    shooter_movement = shooter_movement_between_frames(movement, shooterID, f1, f2)
+
+    distance_sum = 0
+
+    for frame in range(len(shooter_movement)-1):
+        loc1 = shooter_movement[frame]
+        loc2 = shooter_movement[frame+1]
+
+        v = (loc2[0]-loc1[0], loc2[1]-loc1[1])
+        distance_sum += np.sqrt(v[0]**2 + v[1]**2)
+
+    avg_velocity = velocity_sum / (0.04*(f2-f1))
+
+    return avg_velocity
+
 
 def get_shooter_movement_5sec(Data, eventID, shooterID):
     movement=get_movements(Data, eventID, shooterID)
