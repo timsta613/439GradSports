@@ -178,8 +178,8 @@ def get_shooter_movement_nsec(Data, eventID, shooterID, n):
     return [miss_make,shooter_x,shooter_y]
 
 #FOLLOWING FUNCTION RETURNS AVG SHOOTER VELOCITY 1 SECS BEFORE SHOT
-def shooter_velocity(Data, eventID, shooterID):
-    movement=get_shooter_movement_1sec(Data, eventID, shooterID)
+def shooter_velocity(Data, eventID, shooterID,n):
+    movement=get_shooter_movement_nsec(Data, eventID, shooterID,n)
     shooter_x=movement[1]
     shooter_y=movement[2]
     miss_make=movement[0]
@@ -188,8 +188,8 @@ def shooter_velocity(Data, eventID, shooterID):
     for i in range(1,len(shooter_x)):
         xv.append((shooter_x[i]-shooter_x[i-1]))
         yv.append((shooter_y[i]-shooter_y[i-1]))
-    v= sum(np.sqrt((np.array(xv)**2)+(np.array(yv)**2)))/5
-    return [miss_make,v]
+    #v= sum(np.sqrt((np.array(xv)**2)+(np.array(yv)**2)))/5
+    return [miss_make,xv,yv]
 
 #FOLLOWING FUNCTION RETURNS AVG SHOOTER VELOCITY 5 SECS BEFORE SHOT
 def shooter_avg_velocity(Data, eventID, shooterID):
