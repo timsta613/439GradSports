@@ -123,7 +123,7 @@ def get_all_3pt(Data):
             #print(eventID)
             shooterID = int(Data[event]['eventData'][13])
             #print(shooterID)
-            all_3pt_data.append(get_movements(Data, eventID, shooterID))
+            all_3pt_data.append({'shooterID': shooterID, 'eventID': eventID, 'movements': get_movements(Data, eventID, shooterID)})
     return all_3pt_data
 
 all_3pt = get_all_3pt(Data)
