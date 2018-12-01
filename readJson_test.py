@@ -123,7 +123,7 @@ def get_all_3pt(Data):
             #print(eventID)
             shooterID = int(Data[event]['eventData'][13])
             #print(shooterID)
-            all_3pt_data.append(get_movements(Data, eventID, shooterID))
+            all_3pt_data.append({'shooterID': shooterID, 'eventID': eventID, 'movements': get_movements(Data, eventID, shooterID)})
     return all_3pt_data
 
 all_3pt = get_all_3pt(Data)
@@ -162,7 +162,7 @@ def get_shooter_movement_1sec(Data, eventID, shooterID):
     return [miss_make,shooter_x,shooter_y]
 
 def get_shooter_movement_nsec(Data, eventID, shooterID, n):
-    movement=get_movements(Data, eventID, shooterID, n)
+    movement=get_movements(Data, eventID, shooterID)
     index_highest=movement[5].index(max(movement[5]))#-27
     #27 points before the max height is shot point
     #can loop back to get local min
@@ -172,14 +172,14 @@ def get_shooter_movement_nsec(Data, eventID, shooterID, n):
             index_shot=index_shot-1
         else:
             break
-    shooter_x= movement[1][index_shot-n*25:index_shot]
-    shooter_y= movement[2][index_shot-n*25:index_shot]
+    shooter_x= movement[1][index_shot-int(n*25):index_shot]
+    shooter_y= movement[2][index_shot-int(n*25):index_shot]
     miss_make= movement[0]
     return [miss_make,shooter_x,shooter_y]
 
 #FOLLOWING FUNCTION RETURNS AVG SHOOTER VELOCITY 1 SECS BEFORE SHOT
-def shooter_velocity(Data, eventID, shooterID):
-    movement=get_shooter_movement_1sec(Data, eventID, shooterID)
+def shooter_velocity(Data, eventID, shooterID,n):
+    movement=get_shooter_movement_nsec(Data, eventID, shooterID,n)
     shooter_x=movement[1]
     shooter_y=movement[2]
     miss_make=movement[0]
@@ -188,8 +188,8 @@ def shooter_velocity(Data, eventID, shooterID):
     for i in range(1,len(shooter_x)):
         xv.append((shooter_x[i]-shooter_x[i-1]))
         yv.append((shooter_y[i]-shooter_y[i-1]))
-    v= sum(np.sqrt((np.array(xv)**2)+(np.array(yv)**2)))/5
-    return [miss_make,v]
+    #v= sum(np.sqrt((np.array(xv)**2)+(np.array(yv)**2)))/5
+    return [miss_make,xv,yv]
 
 #FOLLOWING FUNCTION RETURNS AVG SHOOTER VELOCITY 5 SECS BEFORE SHOT
 def shooter_avg_velocity(Data, eventID, shooterID):
@@ -270,7 +270,7 @@ def ball_angle_at_release(Data, eventID, shooterID):
     return angle*57.2958
 
 #FOLLOWING FUNCTION GIVES HOW MANY SECONDS BEFORE THE SHOT THE BALL WAS WITH SHOOTER
-def seconds_caught(Data, eventID, shooterID):
+def frames_caught(Data, eventID, shooterID):
     movement=get_movements(Data, eventID, shooterID)
     miss_make=movement[0]
     index_highest=movement[5].index(max(movement[5]))
@@ -287,7 +287,7 @@ def seconds_caught(Data, eventID, shooterID):
     distballshooter=((np.array(ball_x)-np.array(shooter_x))**2 + (np.array(ball_y)-np.array(shooter_y))**2)**.5
 
     index_catch=np.where(distballshooter<1)[0][0]
-    time= (75-index_catch)/25
+    time= (75-index_catch)
     return time
 
 def plot_court(movement):
@@ -373,7 +373,23 @@ def closest_defender_velocity_nsecs(Data, eventID, shooterID, n):
     velocity=(defdistpast-defdistance)/n
     return velocity
 
-
+def catchandshoot(Data, eventID, shooterID):
+    secondscaught=frames_caught(Data, eventID, shooterID)
+    movement=get_movements(Data, eventID, shooterID)
+    miss_make=movement[0]
+    index_highest=movement[5].index(max(movement[5]))
+    index_shot=index_highest
+    while True:
+        if movement[5][index_shot]- movement[5][index_shot-1] > 0:
+            index_shot=index_shot-1
+        else:
+            break
+    ballz=movement[5][index_shot-secondscaught:index_shot]
+    if (all(i > 1 for i in ballz)):
+        return True
+    else:
+        return False
+   
 # def get_dist_matrix(Data, eventID, shooterID):
 
 
