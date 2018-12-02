@@ -135,7 +135,9 @@ def get_shot_index(movement):
     index_highest = ball_z.index(max(ball_z)) # Finds location of highest point of ball during event
     index_shot = index_highest
     while True:
-        if ball_z[index_shot] - ball_z[index_shot-1] > 0:
+        # Continue backtracking until we find a point below 10ft where ball height reaches a local minimum
+        # (Noise near top of trajectory can create fake local minima)
+        if (ball_z[index_shot] - ball_z[index_shot-1] > 0) or (ball_z[index_shot] > 10):
             index_shot -= 1
         else:
             break
