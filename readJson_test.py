@@ -56,9 +56,7 @@ def readJson_test():
 
 # Data = readJson_test()
 Data = readJson('0021500440')
-basket1x=88.65
-basket2x=5.35
-baskety=25
+
 eventID = 32
 shooterID = 200755
 
@@ -141,7 +139,8 @@ def get_shot_index(movement):
             index_shot -= 1
         else:
             break
-
+        if index_shot==0:
+            break
     return index_shot
 
 def get_catch_index(movement, shooterID):
@@ -157,7 +156,8 @@ def get_catch_index(movement, shooterID):
             catch_index -= 1
         else:
             break
-
+        if catch_index==0:
+            break
     return catch_index
 
 def shooter_movement_between_frames(movement, shooterID, f1, f2):
@@ -260,40 +260,41 @@ def shooter_avg_velocity(Data, eventID, shooterID):
     return [miss_make,v]
 
 #FOLLOWING FUNCTION RETURNS HOW MUCH CLOSER SHOOTER MOVED TO BASKET 1 SECS BEFORE SHOT
-def shooter_move_tobasket(Data, eventID, shooterID):
-    movement=get_shooter_movement_1sec(Data, eventID, shooterID)
-    shooter_x=movement[1]
-    shooter_y=movement[2]
-    miss_make=movement[0]
+def shooter_move_tobasket(movement,shooterID, f1, f2):
+
+    shooter_x, shooter_y=zip(*shooter_movement_between_frames(movement, shooterID, f1, f2))
     basketx=0
+    basket1x=88.65
+    basket2x=5.35
+    baskety=25
     if basket1x-shooter_x[-1]< shooter_x[-1]-basket2x:
         basketx=basket1x
     else:
         basketx=basket2x
     finalx=shooter_x[-1]
     finaly=shooter_y[-1]
-    initx=shooter_x[1]
-    inity=shooter_y[1]
+    initx=shooter_x[0]
+    inity=shooter_y[0]
     finaldist=math.sqrt((finalx-basketx)**2+(finaly-baskety)**2)
     initdist=math.sqrt((initx-basketx)**2+(inity-baskety)**2)
-    return [miss_make, -finaldist+initdist]
+    return -finaldist+initdist
 
 #FOLLOWING FUNCTION RETURNS THE ANGLE OF THE MOVEMENT OF THE SHOOTER BEFORE SHOT WRT THE BASKET
-#ZERO DEGREES MEANS MOVED AWAY FROM BASKET (CHECK THIS)
-def shooter_move_angle(Data, eventID, shooterID):
-    movement=get_shooter_movement_1sec(Data, eventID, shooterID)
-    shooter_x=movement[1]
-    shooter_y=movement[2]
-    miss_make=movement[0]
-    basketx=0
+#ZERO DEGREES MEANS MOVED TOWARD FROM BASKET (CHECK THIS)
+def shooter_move_angle(movement, shooterID, f1, f2):
+    shooter_x, shooter_y=zip(*shooter_movement_between_frames(movement, shooterID, f1, f2)) 
+    basketx=0 
+    basket1x=88.65
+    basket2x=5.35
+    baskety=25
     if basket1x-shooter_x[-1]< shooter_x[-1]-basket2x:
         basketx=basket1x
     else:
         basketx=basket2x
     finalx=shooter_x[-1]
     finaly=shooter_y[-1]
-    initx=shooter_x[1]
-    inity=shooter_y[1]
+    initx=shooter_x[0]
+    inity=shooter_y[0]
     a = np.array([initx, inity])
     b = np.array([finalx, finaly])
     c = np.array([basketx, baskety])
@@ -301,23 +302,27 @@ def shooter_move_angle(Data, eventID, shooterID):
     bc = c - b
     cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
     angle = np.arccos(cosine_angle)
-    return angle*57.2958
+    return 180-angle*57.2958
 
-def ball_angle_at_release(Data, eventID, shooterID):
-    movement=get_movements(Data, eventID, shooterID)
-    miss_make=movement[0]
-    index_highest=movement[5].index(max(movement[5]))
-    index_shot=index_highest
-    while True:
-        if movement[5][index_shot]- movement[5][index_shot-1] > 0:
-            index_shot=index_shot-1
-        else:
-            break
+def ball_angle_at_release(movement, index_shot):
     initx= movement[3][index_shot]
     inity= movement[4][index_shot]
     finalx= movement[3][index_shot+5]
     finaly= movement[4][index_shot+5]
     height= movement[5][index_shot+5]- movement[5][index_shot]
+    dist= math.sqrt((finalx-initx)**2 +(finaly-inity)**2)
+    tan_angle = height/dist
+    angle = np.arctan(tan_angle)
+    return angle*57.2958
+
+def ball_angle(movement, index_shot):
+    ball_z = movement[5]
+    index_highest = ball_z.index(max(ball_z))
+    initx= movement[3][index_shot]
+    inity= movement[4][index_shot]
+    finalx= movement[3][index_highest]
+    finaly= movement[4][index_highest]
+    height= movement[5][index_highest]- movement[5][index_shot]
     dist= math.sqrt((finalx-initx)**2 +(finaly-inity)**2)
     tan_angle = height/dist
     angle = np.arctan(tan_angle)
@@ -344,6 +349,19 @@ def frames_caught(Data, eventID, shooterID):
     time= (75-index_catch)
     return time
 
+def shooter_dist_at_time(movement,f1):
+    shooter_x=movement[1][f1]
+    shooter_y=movement[2][f1]
+    basketx=0 
+    basket1x=88.65
+    basket2x=5.35
+    baskety=25
+    if basket1x-shooter_x< shooter_x-basket2x:
+        basketx=basket1x
+    else:
+        basketx=basket2x
+    return math.sqrt((shooter_x-basketx)**2+(shooter_y-baskety)**2)
+    
 def plot_court(movement):
     court = plt.imread("fullcourt.png")
     plt.figure(figsize=(15, 11.5))
@@ -365,47 +383,33 @@ def position_all(Data, eventID):
             position['Time'][i]=i//10 + 1
     return position
 
-#FOLLOWING FUNCTION RETURNS DISTANCE OF ALL PLAYERS FROM SHOOTER N SECS BEFORE SHOT
-def get_dist_matrix_nsecs(Data, eventID, shooterID, n):
-    movement=get_movements(Data, eventID, shooterID)
-    index_highest=movement[5].index(max(movement[5]))
-    index_shot=index_highest
-    while True:
-        if movement[5][index_shot]- movement[5][index_shot-1] > 0:
-            index_shot=index_shot-1
-        else:
-            break
-    eventID= int(eventID)
+#FOLLOWING FUNCTION RETURNS DISTANCE OF ALL PLAYERS FROM SHOOTER AT FRAME F1
+def get_dist_matrix(movement, f1):
     playerID=[]
     playerX=[]
     playerY=[]
     teamID=[]
     for i in range(0,10):
-        teamID.append(Data[eventID]['movementData'][index_shot-n*25][5][1:11][i][0])
-        playerID.append(Data[eventID]['movementData'][index_shot-n*25][5][1:11][i][1])
-        playerX.append(Data[eventID]['movementData'][index_shot-n*25][5][1:11][i][2])
-        playerY.append(Data[eventID]['movementData'][index_shot-n*25][5][1:11][i][3])
+        teamID.append(Data[eventID]['movementData'][f1][5][1:11][i][0])
+        playerID.append(Data[eventID]['movementData'][f1][5][1:11][i][1])
+        playerX.append(Data[eventID]['movementData'][f1][5][1:11][i][2])
+        playerY.append(Data[eventID]['movementData'][f1][5][1:11][i][3])
     df = pd.DataFrame(columns=['xcord', 'ycord'], index=playerID)
     df['xcord']=playerX
     df['ycord']=playerY
     distmat=pd.DataFrame(distance_matrix(df.values, df.values), index=df.index, columns=df.index)
     distfromshooter=distmat[shooterID]
-    #distfromshooter['Distance']=distfromshooter
-    #distfromshooter['TeamID']=teamID
     return distfromshooter
+
 #FIRST FIVE ARE ONE TEAM, NEXT 5 ARE OTHER TEAM
 
-distfromshooter=get_dist_matrix_nsecs(Data, eventID, shooterID, 0)
-dist_shooter_team1=(distfromshooter)[0:5]
-dist_shooter_team2=(distfromshooter)[5:11]
-
-def closest_defender_dist_nsecs(Data, eventID, shooterID, n):
-    distfromshooter=get_dist_matrix_nsecs(Data, eventID, shooterID, 0)
+def closest_defender_dist(movement, f1):
+    distfromshooter=get_dist_matrix(movement, f1)
     dist_shooter_team1=(distfromshooter)[0:5]
     dist_shooter_team2=(distfromshooter)[5:11]
-    shooterteam=Data[eventID]['eventData'][15]
-    team1=str(Data[eventID]['movementData'][5][5][1][0])
-    team2=str(Data[eventID]['movementData'][5][5][6][0])
+    shooterteam=int(float(Data[eventID]['eventData'][15]))
+    team1=(Data[eventID]['movementData'][5][5][1][0])
+    team2=(Data[eventID]['movementData'][5][5][6][0])
     closestdefdist= None
     closestdefid= None
 
@@ -418,27 +422,20 @@ def closest_defender_dist_nsecs(Data, eventID, shooterID, n):
 
     return [closestdefid,closestdefdist]
 
-def closest_defender_velocity_nsecs(Data, eventID, shooterID, n):
-    defdist=closest_defender_dist_nsecs(Data, eventID, shooterID, 0)
+#VELOCITY WITH RESPECT TO PLAYER 
+def closest_defender_velocity(movement, f1, f2):
+    defdist=closest_defender_dist(movement, f2)
     defid=defdist[0]
     defdistance=defdist[1]
-    distmat=get_dist_matrix_nsecs(Data, eventID, shooterID, n)
+    distmat=get_dist_matrix(movement, f1)
     defdistpast=distmat[defid]
-    velocity=(defdistpast-defdistance)/n
+    velocity=(defdistpast-defdistance)/(f2-f1)/.04
     return velocity
 
-def catchandshoot(Data, eventID, shooterID):
-    secondscaught=frames_caught(Data, eventID, shooterID)
-    movement=get_movements(Data, eventID, shooterID)
-    miss_make=movement[0]
-    index_highest=movement[5].index(max(movement[5]))
-    index_shot=index_highest
-    while True:
-        if movement[5][index_shot]- movement[5][index_shot-1] > 0:
-            index_shot=index_shot-1
-        else:
-            break
-    ballz=movement[5][index_shot-secondscaught:index_shot]
+def catch_and_shoot(movement):
+    t_shot = get_shot_index(movement) # Time in frames from beginning of the event
+    t_catch = get_catch_index(movement, shooterID)
+    ballz=movement[5][t_catch:t_shot]
     if (all(i > 1 for i in ballz)):
         return True
     else:
