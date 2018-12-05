@@ -50,10 +50,18 @@ def get_movements(Data, eventID, shooterID):
     # Take 5th element (list of player & ball locations) of 1st moment in movement data
     # and construct dictionary of Player IDs : index in that list of players
 
-    playerIndices = {data[1]: index for index, data in enumerate(movement_data[1][5])}
-    #print(playerIndices)
-    shooter_row_num = playerIndices[shooterID]
-    #print(shooter_row_num)
+    shooter_row_num = None
+    for moment in movement_data:
+        playerIndices = {data[1]: index for index, data in enumerate(moment[5])}
+        if shooterID in playerIndices:
+            shooter_row_num = playerIndices[shooterID]
+
+    if shooter_row_num is None:
+        return None
+    # playerIndices = {data[1]: index for index, data in enumerate(movement_data[0][5])}
+    # #print(playerIndices)
+    # shooter_row_num = playerIndices[shooterID]
+    # #print(shooter_row_num)
 
     for index, moment in enumerate(movement_data):
         locations = moment[5]
@@ -66,13 +74,19 @@ def get_movements(Data, eventID, shooterID):
             ball_z.append(locations[0][4])
         # If only 10 rows, then no ball data is present so copy from before
         # Ball is always index 0 so shooter index decreases by 1 when ball isn't present
-        else:
-            assert len(locations) == 10
+        elif len(locations) == 10:
             shooter_x.append(locations[shooter_row_num-1][2])
             shooter_y.append(locations[shooter_row_num-1][3])
             ball_x.append(movement_data[index-1][5][0][2])
             ball_y.append(movement_data[index-1][5][0][3])
             ball_z.append(movement_data[index-1][5][0][4])
+        # If fewer than 10 rows, then we have no idea what's going on. Carry everything forward
+        else:
+            shooter_x.append(shooter_x[-1])
+            shooter_y.append(shooter_y[-1])
+            ball_x.append(ball_x[-1])
+            ball_y.append(ball_y[-1])
+            ball_z.append(ball_z[-1])
 
     if Data[eventID]['eventData'][2] == '1':
         miss_make = 1
