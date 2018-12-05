@@ -110,8 +110,59 @@ def get_all_3pt(Data):
 
 # movement arg is output of get_movements(Data, eventID, shooterID)
 def get_shot_index(movement):
+    shooter_x = movement[1]
+    shooter_y = movement[2]
+    ball_x = movement[3]
+    ball_y = movement[4]
+    ball_z = movement[5]
+    # index_highest = ball_z.index(max(ball_z)) # Finds location of highest point of ball during event
+
+    k = 20
+    if len(ball_z) < k:
+        k = len(ball_z)
+
+    temp = ball_z[:k]
+    indices = list(range(k))
+    mintemp = min(temp)
+    minidx = temp.index(mintemp)
+    for idx, height in enumerate(ball_z[k:]):
+        if height > mintemp:
+            temp[minidx] = height
+            indices[minidx] = idx
+            mintemp = min(temp)
+            minidx = temp.index(mintemp)
+
+    k_highest_pts = indices
+    possible_shot_indices = list()
+
+    for candidate_index in k_highest_pts:
+        idx = candidate_index
+        while idx > 0:
+            # Continue backtracking until we find a point below 10ft where
+            # ball height reaches a local minimum (Noise near top of trajectory
+            # can create fake local minima, so we ignore minima above z=10ft)
+            if (ball_z[idx] - ball_z[idx-1] > 0) or (ball_z[idx] > 10):
+                idx -= 1
+            else:
+                break
+
+        # The shooter we know took the shot could only have done it if they had possession
+        # at the local minimum
+        if np.sqrt((shooter_x[idx] - ball_x[idx])**2 + (shooter_y[idx] - ball_y[idx])**2) < 3:
+            possible_shot_indices.append(idx)
+
+    # If shooter shot ball twice(+) in same event, we assume the last shot is the correct one
+    # since it has the most pre-shot information available for us to analyze
+    if len(possible_shot_indices) > 0:
+        return max(possible_shot_indices)
+    else:
+        return None
+
+
+def get_shot_index_old(movement):
     ball_z = movement[5]
     index_highest = ball_z.index(max(ball_z)) # Finds location of highest point of ball during event
+
     index_shot = index_highest
     while index_shot > 0:
         # Continue backtracking until we find a point below 10ft where ball height reaches a local minimum
@@ -123,7 +174,8 @@ def get_shot_index(movement):
 
     return index_shot
 
-def get_catch_index(movement, shooterID):
+
+def get_catch_index(movement):
     shooter_x = movement[1]
     shooter_y = movement[2]
     ball_x = movement[3]
@@ -164,7 +216,7 @@ def shooter_velocity_between_frames(movement, shooterID, f1, f2):
 
 def is_catch_and_shoot(movement, shooterID):
     shot_index = get_shot_index(movement)
-    catch_index = get_catch_index(movement, shooterID)
+    catch_index = get_catch_index(movement)
 
     ballz = movement[5][catch_index:shot_index]
     return all(z > 1 for z in ballz)
