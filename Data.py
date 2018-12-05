@@ -1,0 +1,11 @@
+movementDataSample = ['12.23.2015.BOS.at.CHA.7z', '01.10.2016.NOP.at.LAC.7z', '01.23.2016.MIL.at.NOP.7z', '12.03.2015.DEN.at.TOR.7z',
+					  '12.20.2015.SAC.at.TOR.7z', '12.28.2015.ATL.at.IND.7z', '12.25.2015.SAS.at.HOU.7z', '11.24.2015.CHI.at.POR.7z',
+					  '01.18.2016.POR.at.WAS.7z', '12.06.2015.SAC.at.OKC.7z', '12.07.2015.WAS.at.MIA.7z', '11.07.2015.GSW.at.SAC.7z',
+					  '11.13.2015.ATL.at.BOS.7z', '01.23.2016.IND.at.SAC.7z', '01.04.2016.BOS.at.BKN.7z', '12.26.2015.CHI.at.DAL.7z',
+					  '11.20.2015.NYK.at.OKC.7z', '01.15.2016.MIA.at.DEN.7z', '12.19.2015.LAL.at.OKC.7z', '12.26.2015.HOU.at.NOP.7z',
+					  '12.10.2015.NYK.at.SAC.7z', '01.08.2016.CLE.at.MIN.7z', '12.30.2015.WAS.at.TOR.7z', '12.11.2015.WAS.at.NOP.7z',
+					  '12.21.2015.SAC.at.WAS.7z', '12.15.2015.HOU.at.SAC.7z', '12.16.2015.MEM.at.CHI.7z', '11.05.2015.OKC.at.CHI.7z',
+					  '12.21.2015.ORL.at.NYK.7z', '01.04.2016.TOR.at.CLE.7z', '11.29.2015.MIL.at.CHA.7z', '12.23.2015.HOU.at.ORL.7z',
+					  '01.15.2016.POR.at.BKN.7z', '12.25.2015.CHI.at.OKC.7z', '11.21.2015.MEM.at.SAS.7z', '01.02.2016.DEN.at.GSW.7z',
+					  '01.21.2016.DET.at.NOP.7z', '12.12.2015.BOS.at.CHA.7z', '11.29.2015.PHI.at.MEM.7z', '12.15.2015.DEN.at.MIN.7z',
+					  '12.25.2015.LAC.at.LAL.7z']

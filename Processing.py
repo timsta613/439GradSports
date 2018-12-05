@@ -2,20 +2,68 @@ import csv
 import os
 import random
 import shutil
+import subprocess
 
+from Data import movementDataSample
 from Utils import *
 
 
+# Change these paths to your local instances before running
+dropboxDir = 'C:/Users/n3tur/Dropbox (MIT)/Class/6_439 Group Project/' # Path to project directory
+codeDir = 'C:/Users/n3tur/Documents/GitHub/439GradSports/' # Path to project code
+
+
 def main():
+	extractSpecificMovementData(movementDataSample)
 	writeSpeedCSV()
 
 
-def extractMovementData(numFiles):
-	zipDir = 'C:/Users/n3tur/Dropbox (MIT)/Class/6_439 Group Project/Data/nba-movement-data-master/data/'
-	csvDir = 'C:/Users/n3tur/Dropbox (MIT)/Class/6_439 Group Project/Data/events/'
+def extractSpecificMovementData(fnames):
+	zipDir = os.path.join(dropboxDir, 'Data/nba-movement-data-master/data/')
+	csvDir = os.path.join(dropboxDir, 'Data/events/')
 
-	movementDataDir = 'C:/Users/n3tur/Documents/GitHub/439GradSports/data/movement/'
-	eventDataDir = 'C:/Users/n3tur/Documents/GitHub/439GradSports/data/events/'
+	movementDataDir = os.path.join(codeDir, 'data/movement/')
+	eventDataDir = os.path.join(codeDir, 'data/events/')
+
+	os.chdir(zipDir)
+	targetFiles = os.listdir(movementDataDir)
+	print(targetFiles)
+
+	for file in fnames:
+		print('\n{}'.format(file))
+
+		# Output of '7z l {filename}' in command line (only way to see filenames inside .7z without extracting)
+		file_contents = subprocess.check_output(['7z','l',file]).decode('utf-8')
+		gameID = [x[:x.find('.json')] for x in file_contents.split(' ') if (x.find('.json') > 0)][0]
+
+		print(gameID)
+		if '{}.json'.format(gameID) not in targetFiles:
+			os.system('7z x {} -o{}'.format(
+				file, movementDataDir))
+			print('{} not found!'.format(os.path.join(movementDataDir, '{}.json'.format(gameID))))
+		else:
+			print('File {} (Game ID {}) is already in the data folder'.format(file, gameID))
+
+	gameIDs = [x.split('.')[0] for x in os.listdir(movementDataDir)]
+
+	print(csvDir)
+	for gameID in gameIDs:
+		csvfname = '{}.csv'.format(gameID)
+		csvpath = os.path.join(csvDir, csvfname)
+		try:
+			shutil.copy(csvpath, eventDataDir)
+		except FileNotFoundError:
+			print('File not found: {}'.format(csvpath))
+
+	return gameIDs
+
+
+def extractRandomMovementData(numFiles):
+	zipDir = os.path.join(baseDir, 'Data/nba-movement-data-master/data/')
+	csvDir = os.path.join(baseDir, '/Data/events/')
+
+	movementDataDir = os.path.join(codeDir, 'data/movement/')
+	eventDataDir = os.path.join(codeDir, '/data/events/')
 
 	os.chdir(zipDir)
 	fileList = os.listdir()
@@ -35,11 +83,12 @@ def extractMovementData(numFiles):
 		except FileNotFoundError:
 			continue
 
-	return gameIDs
+	return fileSubset, gameIDs
 
 
 def writeSpeedCSV():
-	gameIDs = [x.split('.')[0] for x in os.listdir('./data/movement/')]
+	os.chdir(codeDir)
+	gameIDs = [x.split('.')[0] for x in os.listdir('./data/movement/')] # Combs through every movement data file in data directory
 	outfile = 'test/3pt_speeds.csv'
 
 	for gameID in gameIDs:
