@@ -282,8 +282,8 @@ def shooter_move_tobasket(movement,shooterID, f1, f2):
 #FOLLOWING FUNCTION RETURNS THE ANGLE OF THE MOVEMENT OF THE SHOOTER BEFORE SHOT WRT THE BASKET
 #ZERO DEGREES MEANS MOVED TOWARD FROM BASKET (CHECK THIS)
 def shooter_move_angle(movement, shooterID, f1, f2):
-    shooter_x, shooter_y=zip(*shooter_movement_between_frames(movement, shooterID, f1, f2)) 
-    basketx=0 
+    shooter_x, shooter_y=zip(*shooter_movement_between_frames(movement, shooterID, f1, f2))
+    basketx=0
     basket1x=88.65
     basket2x=5.35
     baskety=25
@@ -352,7 +352,7 @@ def frames_caught(Data, eventID, shooterID):
 def shooter_dist_at_time(movement,f1):
     shooter_x=movement[1][f1]
     shooter_y=movement[2][f1]
-    basketx=0 
+    basketx=0
     basket1x=88.65
     basket2x=5.35
     baskety=25
@@ -361,7 +361,7 @@ def shooter_dist_at_time(movement,f1):
     else:
         basketx=basket2x
     return math.sqrt((shooter_x-basketx)**2+(shooter_y-baskety)**2)
-    
+
 def plot_court(movement):
     court = plt.imread("fullcourt.png")
     plt.figure(figsize=(15, 11.5))
@@ -422,7 +422,7 @@ def closest_defender_dist(movement, f1):
 
     return [closestdefid,closestdefdist]
 
-#VELOCITY WITH RESPECT TO PLAYER 
+#VELOCITY WITH RESPECT TO PLAYER
 def closest_defender_velocity(movement, f1, f2):
     defdist=closest_defender_dist(movement, f2)
     defid=defdist[0]
@@ -440,7 +440,7 @@ def catch_and_shoot(movement):
         return True
     else:
         return False
-   
+
 # def get_dist_matrix(Data, eventID, shooterID):
 
 
