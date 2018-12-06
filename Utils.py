@@ -364,7 +364,7 @@ def position_all(Data, eventID):
     return position
 
 #FOLLOWING FUNCTION RETURNS DISTANCE OF ALL PLAYERS FROM SHOOTER AT FRAME F1
-def get_dist_matrix(movement, f1):
+def get_dist_matrix(movement, f1, Data):
     playerID=[]
     playerX=[]
     playerY=[]
@@ -383,7 +383,7 @@ def get_dist_matrix(movement, f1):
 
 #FIRST FIVE ARE ONE TEAM, NEXT 5 ARE OTHER TEAM
 
-def closest_defender_dist(movement, f1):
+def closest_defender_dist(movement, f1, Data):
     distfromshooter=get_dist_matrix(movement, f1)
     dist_shooter_team1=(distfromshooter)[0:5]
     dist_shooter_team2=(distfromshooter)[5:11]
@@ -403,7 +403,7 @@ def closest_defender_dist(movement, f1):
     return [closestdefid,closestdefdist]
 
 #VELOCITY WITH RESPECT TO PLAYER 
-def closest_defender_velocity(movement, f1, f2):
+def closest_defender_velocity(movement, f1, f2, Data):
     defdist=closest_defender_dist(movement, f2)
     defid=defdist[0]
     defdistance=defdist[1]
