@@ -1,7 +1,11 @@
 import csv
 import json
 import numpy as np
-
+import matplotlib.pyplot as plt
+import matplotlib.pylab as pylab
+import math
+import pandas as pd
+from scipy.spatial import distance_matrix
 
 # Update of readJson_test() which matches movement data to the event data by event ID
 # Pass in the game ID to match
@@ -237,187 +241,61 @@ def catchandshoot(Data, eventID, shooterID):
         return True
     else:
         return False
-
     
     
-def shooter_move_tobasket(movement,shooterID, f1, f2):
-
-    shooter_x, shooter_y=zip(*shooter_movement_between_frames(movement, shooterID, f1, f2))
-    basketx=0
-    basket1x=88.65
-    basket2x=5.35
-    baskety=25
-    if basket1x-shooter_x[-1]< shooter_x[-1]-basket2x:
-        basketx=basket1x
-    else:
-        basketx=basket2x
-    finalx=shooter_x[-1]
-    finaly=shooter_y[-1]
-    initx=shooter_x[0]
-    inity=shooter_y[0]
-    finaldist=math.sqrt((finalx-basketx)**2+(finaly-baskety)**2)
-    initdist=math.sqrt((initx-basketx)**2+(inity-baskety)**2)
-    return -finaldist+initdist
-
-#FOLLOWING FUNCTION RETURNS THE ANGLE OF THE MOVEMENT OF THE SHOOTER BEFORE SHOT WRT THE BASKET
-#ZERO DEGREES MEANS MOVED TOWARD FROM BASKET (CHECK THIS)
-def shooter_move_angle(movement, shooterID, f1, f2):
-    shooter_x, shooter_y=zip(*shooter_movement_between_frames(movement, shooterID, f1, f2)) 
-    basketx=0 
-    basket1x=88.65
-    basket2x=5.35
-    baskety=25
-    if basket1x-shooter_x[-1]< shooter_x[-1]-basket2x:
-        basketx=basket1x
-    else:
-        basketx=basket2x
-    finalx=shooter_x[-1]
-    finaly=shooter_y[-1]
-    initx=shooter_x[0]
-    inity=shooter_y[0]
-    a = np.array([initx, inity])
-    b = np.array([finalx, finaly])
-    c = np.array([basketx, baskety])
-    ba = a - b
-    bc = c - b
-    cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-    angle = np.arccos(cosine_angle)
-    return 180-angle*57.2958
-
-def ball_angle_at_release(movement, index_shot):
-    initx= movement[3][index_shot]
-    inity= movement[4][index_shot]
-    finalx= movement[3][index_shot+5]
-    finaly= movement[4][index_shot+5]
-    height= movement[5][index_shot+5]- movement[5][index_shot]
-    dist= math.sqrt((finalx-initx)**2 +(finaly-inity)**2)
-    tan_angle = height/dist
-    angle = np.arctan(tan_angle)
-    return angle*57.2958
-
-def ball_angle(movement, index_shot):
-    ball_z = movement[5]
-    index_highest = ball_z.index(max(ball_z))
-    initx= movement[3][index_shot]
-    inity= movement[4][index_shot]
-    finalx= movement[3][index_highest]
-    finaly= movement[4][index_highest]
-    height= movement[5][index_highest]- movement[5][index_shot]
-    dist= math.sqrt((finalx-initx)**2 +(finaly-inity)**2)
-    tan_angle = height/dist
-    angle = np.arctan(tan_angle)
-    return angle*57.2958
-
-#FOLLOWING FUNCTION GIVES HOW MANY SECONDS BEFORE THE SHOT THE BALL WAS WITH SHOOTER
-def frames_caught(Data, eventID, shooterID):
-    movement=get_movements(Data, eventID, shooterID)
-    miss_make=movement[0]
-    index_highest=movement[5].index(max(movement[5]))
-    index_shot=index_highest
-    while True:
-        if movement[5][index_shot]- movement[5][index_shot-1] > 0:
-            index_shot=index_shot-1
-        else:
-            break
-    shooter_x= movement[1][index_shot-75:index_shot]
-    shooter_y= movement[2][index_shot-75:index_shot]
-    ball_x= movement[3][index_shot-75:index_shot]
-    ball_y= movement[4][index_shot-75:index_shot]
-    distballshooter=((np.array(ball_x)-np.array(shooter_x))**2 + (np.array(ball_y)-np.array(shooter_y))**2)**.5
-
-    index_catch=np.where(distballshooter<1)[0][0]
-    time= (75-index_catch)
-    return time
-
-def shooter_dist_at_time(movement,f1):
-    shooter_x=movement[1][f1]
-    shooter_y=movement[2][f1]
-    basketx=0 
-    basket1x=88.65
-    basket2x=5.35
-    baskety=25
-    if basket1x-shooter_x< shooter_x-basket2x:
-        basketx=basket1x
-    else:
-        basketx=basket2x
-    return math.sqrt((shooter_x-basketx)**2+(shooter_y-baskety)**2)
     
-def plot_court(movement):
-    court = plt.imread("fullcourt.png")
-    plt.figure(figsize=(15, 11.5))
-    plt.scatter(movement[1],movement[2])
-    plt.imshow(court, zorder=0, extent=[0,94,50,0])
-    plt.xlim(0,101)
-    plt.show()
+    
+    
+# begin some plotting catch and shoot data
+Data = readJson('0021500440')
+eventID = 32
+shooterID = 200755
+movement_data = get_movements(Data,eventID,shooterID)
+shooter_x = movement_data[1]
+shooter_y = movement_data[2]
+ball_x = movement_data[3]
+ball_y = movement_data[4]
+ball_z = movement_data[5]
+caught_index = get_catch_index(movement_data)
+shot_index = get_shot_index(movement_data)
+    
+# plotting player x y and court
+plt.figure()
+court = plt.imread("fullcourt.png")
+plt.figure(figsize=(15, 11.5))
+plt.xlabel("x coordinate (ft)", fontsize=20)
+plt.ylabel("y coordinate (ft)", fontsize=20)
+plt.scatter(shooter_x[120:260],shooter_y[120:260], s=5)
+plt.scatter(shooter_x[caught_index],shooter_y[caught_index], s=20,c = 'k')
+plt.scatter(shooter_x[shot_index],shooter_y[shot_index], s=20, c = 'r')
+plt.imshow(court, zorder=0, extent=[0,94,50,0])
+plt.xlim(0,95)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.show()
 
-#FOLLOWING FUNCTION RETURNS POSITION OF ALL PLAYERS ON COURT FOR A PLAY
-#ASSUMES BALL AND ALL PLAYER DATA THERE
-#THIS TAKES TOO LONG TO RUN, got to be a more efficient way
-def position_all(Data, eventID):
-    eventID= int(eventID)
-    position = pd.DataFrame(index=range(0,len(Data[eventID]['movementData'])*10),columns=['Time','PlayerID','PlayerX', 'PlayerY'])
-    for i in range(0,len(Data[eventID]['movementData'])*10):
-            position['PlayerID'][i]=(Data[eventID]['movementData'][i//10][5][1:11][i%10][1])
-            position['PlayerX'][i]=(Data[eventID]['movementData'][i//10][5][1:11][i%10][2])
-            position['PlayerY'][i]=(Data[eventID]['movementData'][i//10][5][1:11][i%10][3])
-            position['Time'][i]=i//10 + 1
-    return position
+# plotting ball x y and court 
+plt.figure()
+court = plt.imread("fullcourt.png")
+plt.figure(figsize=(15, 11.5))
+plt.xlabel("x coordinate (ft)", fontsize=20)
+plt.ylabel("y coordinate (ft)", fontsize=20)
+plt.scatter(ball_x[120:260],ball_y[120:260], s=5)
+plt.scatter(ball_x[caught_index],ball_y[caught_index], s=20,c = 'k')
+plt.scatter(ball_x[shot_index],ball_y[shot_index], s=20, c = 'r')
+plt.imshow(court, zorder=0, extent=[0,94,50,0])
+plt.xlim(0,95)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.show()
 
-#FOLLOWING FUNCTION RETURNS DISTANCE OF ALL PLAYERS FROM SHOOTER AT FRAME F1
-def get_dist_matrix(movement, f1, Data, eventID):
-    playerID=[]
-    playerX=[]
-    playerY=[]
-    teamID=[]
-    for i in range(0,10):
-        teamID.append(Data[eventID]['movementData'][f1][5][1:11][i][0])
-        playerID.append(Data[eventID]['movementData'][f1][5][1:11][i][1])
-        playerX.append(Data[eventID]['movementData'][f1][5][1:11][i][2])
-        playerY.append(Data[eventID]['movementData'][f1][5][1:11][i][3])
-    df = pd.DataFrame(columns=['xcord', 'ycord'], index=playerID)
-    df['xcord']=playerX
-    df['ycord']=playerY
-    distmat=pd.DataFrame(distance_matrix(df.values, df.values), index=df.index, columns=df.index)
-    distfromshooter=distmat[shooterID]
-    return distfromshooter
-
-#FIRST FIVE ARE ONE TEAM, NEXT 5 ARE OTHER TEAM
-
-def closest_defender_dist(movement, f1, Data, eventID):
-    distfromshooter=get_dist_matrix(movement, f1, Data, eventID)
-    dist_shooter_team1=(distfromshooter)[0:5]
-    dist_shooter_team2=(distfromshooter)[5:11]
-    shooterteam=int(float(Data[eventID]['eventData'][15]))
-    team1=(Data[eventID]['movementData'][5][5][1][0])
-    team2=(Data[eventID]['movementData'][5][5][6][0])
-    closestdefdist= None
-    closestdefid= None
-
-    if (shooterteam==team1):
-        closestdefdist=min(dist_shooter_team2)
-        closestdefid=dist_shooter_team2.idxmin()
-    else:
-        closestdefdist=min(dist_shooter_team1)
-        closestdefid=dist_shooter_team1.idxmin()
-
-    return [closestdefid,closestdefdist]
-
-#VELOCITY WITH RESPECT TO PLAYER 
-def closest_defender_velocity(movement, f1, f2, Data, eventID):
-    defdist=closest_defender_dist(movement, f2, Data, eventID)
-    defid=defdist[0]
-    defdistance=defdist[1]
-    distmat=get_dist_matrix(movement, f1, Data, eventID)
-    defdistpast=distmat[defid]
-    velocity=(defdistpast-defdistance)/(f2-f1)/.04
-    return velocity
-
-def catch_and_shoot(movement):
-    t_shot = get_shot_index(movement) # Time in frames from beginning of the event
-    t_catch = get_catch_index(movement, shooterID)
-    ballz=movement[5][t_catch:t_shot]
-    if (all(i > 1 for i in ballz)):
-        return True
-    else:
-        return False
-   
+# plotting ball z
+plt.figure()
+plt.xlabel("time (frames from start of play)", fontsize=18)
+plt.ylabel("z coordinate (ft)", fontsize=18)
+plt.scatter(range(120,260), ball_z[120:260], s=5)
+plt.scatter(caught_index, ball_z[caught_index], s=20,c = 'k')
+plt.scatter(shot_index, ball_z[shot_index], s=20, c = 'r')
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.show()

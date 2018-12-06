@@ -153,9 +153,9 @@ def writeSpeedCSV():
 			row.append(ball_angle(movement, t_shot))
 			row.append(shooter_move_angle(movement, shooterID, t_catch, t_shot))
 			row.append(shooter_move_tobasket(movement,shooterID, t_catch, t_shot))
-			row.append(closest_defender_dist(movement, t_shot)[0])
-			row.append(closest_defender_dist(movement, t_shot)[1])
-			row.append(closest_defender_velocity(movement,t_catch,t_shot))
+			row.append(closest_defender_dist(movement, t_shot, Data, eventID)[0])
+			row.append(closest_defender_dist(movement, t_shot, Data, eventID)[1])
+			row.append(closest_defender_velocity(movement,t_catch,t_shot, Data, eventID))
 			[row.append(v_before_shot[x]) for x in v_before_shot]
 			[row.append(v_before_catch[x]) for x in v_before_catch]
 
