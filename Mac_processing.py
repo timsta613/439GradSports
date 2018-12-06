@@ -3,18 +3,19 @@ import os
 import random
 import shutil
 import subprocess
+import math
 
 from Data import movementDataSample
 from Utils import *
 
 
 # Change these paths to your local instances before running
-dropboxDir = '/Users/tzhong/Dropbox (MIT)/6_439 Group Project'
-codeDir = '/Users/tzhong/Code/Classes/2018/Fall/ids-131/439GradSports'
+dropboxDir = '/Users/karanbhuwalka/Dropbox (MIT)/6_439 Group Project/'
+codeDir = '/Users/karanbhuwalka/Desktop/IDS-131/Project/'
 
 
 def main():
-	extractSpecificMovementData(movementDataSample)
+	extractRandomMovementData(100)
 	writeSpeedCSV()
 
 
@@ -38,8 +39,7 @@ def extractSpecificMovementData(fnames):
 
 		print(gameID)
 		if '{}.json'.format(gameID) not in targetFiles:
-			os.system('7za x {} -o{}'.format(
-				file, movementDataDir))
+			os.system('7za x {} -o{}'.format(file, movementDataDir))
 			print('{} not found!'.format(os.path.join(movementDataDir, '{}.json'.format(gameID))))
 		else:
 			print('File {} (Game ID {}) is already in the data folder'.format(file, gameID))
@@ -59,8 +59,8 @@ def extractSpecificMovementData(fnames):
 
 
 def extractRandomMovementData(numFiles):
-	zipDir = os.path.join(baseDir, 'Data/nba-movement-data-master/data/')
-	csvDir = os.path.join(baseDir, '/Data/events/')
+	zipDir = os.path.join(dropboxDir, 'Data/nba-movement-data-master/data/')
+	csvDir = os.path.join(dropboxDir, '/Data/events/')
 
 	movementDataDir = os.path.join(codeDir, 'data/movement/')
 	eventDataDir = os.path.join(codeDir, '/data/events/')
@@ -78,9 +78,12 @@ def extractRandomMovementData(numFiles):
 
 	for gameID in gameIDs:
 		csvfname = '{}.csv'.format(gameID)
+		csvpath = os.path.join(csvDir, csvfname)
+
 		try:
 			shutil.copy(os.path.join(csvDir, csvfname), eventDataDir)
 		except FileNotFoundError:
+			print('File not found: {}'.format(csvpath))
 			continue
 
 	return fileSubset, gameIDs
@@ -88,8 +91,8 @@ def extractRandomMovementData(numFiles):
 
 def writeSpeedCSV():
 	os.chdir(codeDir)
-	gameIDs = [x.split('.')[0] for x in os.listdir('./data/movement/')] # Combs through every movement data file in data directory
-	outfile = 'test/3pt_speeds.csv'
+	gameIDs = [x.split('.')[0] for x in os.listdir('/Users/karanbhuwalka/Desktop/IDS-131/Project/data/movement/')] # Combs through every movement data file in data directory
+	outfile = '/Users/karanbhuwalka/Desktop/IDS-131/Project/Results/3ptfeatures.csv'
 
 	for gameID in gameIDs:
 		print(gameID)
@@ -111,16 +114,14 @@ def writeSpeedCSV():
 			t_catch = get_catch_index(movement) # Same
 
 			t_min_before_highest = get_shot_index_old(movement)
-			if t_shot == t_min_before_highest:
-				continue
-			else:
-				print('Event {} - Previously thought Shooter {} caught/shot @ {} but now caught @ {} / shot @ {}'.format(
-					eventID, shooterID, t_min_before_highest, t_catch, t_shot))
 
 			if t_catch == t_shot:
 				print('Event {} - Shooter {} caught ball at {} and shot at {}'.format(
 					eventID, shooterID, t_catch, t_shot))
 				continue
+			else:
+				print('Event {} - Previously thought Shooter {} caught/shot @ {} but now caught @ {} / shot @ {}'.format(
+					eventID, shooterID, t_min_before_highest, t_catch, t_shot))
 
 			is_cns = is_catch_and_shoot(movement, shooterID)
 
@@ -154,13 +155,27 @@ def writeSpeedCSV():
 			row.append(3*movement[0])
 			row.append(t_with_ball)
 			row.append(v_with_ball)
+
 			row.append(shooter_dist_at_time(movement,t_shot))
 			row.append(ball_angle(movement, t_shot))
 			row.append(shooter_move_angle(movement, shooterID, t_catch, t_shot))
 			row.append(shooter_move_tobasket(movement,shooterID, t_catch, t_shot))
-			row.append(closest_defender_dist(movement, t_shot, Data, eventID)[0])
-			row.append(closest_defender_dist(movement, t_shot, Data, eventID)[1])
-			row.append(closest_defender_velocity(movement,t_catch,t_shot, Data, eventID))
+			try:
+				row.append(closest_defender_dist(movement, t_shot,Data, eventID, shooterID)[0])                
+			except:
+				row.append(-100)                                
+			try:
+				row.append(closest_defender_dist(movement, t_shot,Data, eventID, shooterID)[1])                
+			except:
+				row.append(-100)                                
+			try:
+				row.append(closest_defender_velocity(movement, t_catch, t_shot,Data, eventID, shooterID))                
+			except:
+				row.append(-100)                                            #row.append(closest_defender_dist(movement, t_shot,Data, eventID, shooterID)[1])
+			#row.append(closest_defender_velocity(movement,t_catch,t_shot, Data, eventID, shooterID))
+			row.append(t_with_ball)
+			row.append(v_with_ball)
+
 			[row.append(v_before_shot[x]) for x in v_before_shot]
 			[row.append(v_before_catch[x]) for x in v_before_catch]
 
