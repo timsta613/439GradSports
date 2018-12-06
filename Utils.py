@@ -1,7 +1,9 @@
 import csv
 import json
 import numpy as np
-
+import math
+import pandas as pd
+from scipy.spatial import distance_matrix
 
 # Update of readJson_test() which matches movement data to the event data by event ID
 # Pass in the game ID to match
@@ -238,8 +240,6 @@ def catchandshoot(Data, eventID, shooterID):
     else:
         return False
 
-    
-    
 def shooter_move_tobasket(movement,shooterID, f1, f2):
 
     shooter_x, shooter_y=zip(*shooter_movement_between_frames(movement, shooterID, f1, f2))
@@ -364,53 +364,61 @@ def position_all(Data, eventID):
     return position
 
 #FOLLOWING FUNCTION RETURNS DISTANCE OF ALL PLAYERS FROM SHOOTER AT FRAME F1
-def get_dist_matrix(movement, f1, Data, eventID):
+def get_dist_matrix(movement, f1, Data, eventID, shooterID):
     playerID=[]
     playerX=[]
     playerY=[]
     teamID=[]
-    for i in range(0,10):
-        teamID.append(Data[eventID]['movementData'][f1][5][1:11][i][0])
-        playerID.append(Data[eventID]['movementData'][f1][5][1:11][i][1])
-        playerX.append(Data[eventID]['movementData'][f1][5][1:11][i][2])
-        playerY.append(Data[eventID]['movementData'][f1][5][1:11][i][3])
-    df = pd.DataFrame(columns=['xcord', 'ycord'], index=playerID)
-    df['xcord']=playerX
-    df['ycord']=playerY
-    distmat=pd.DataFrame(distance_matrix(df.values, df.values), index=df.index, columns=df.index)
-    distfromshooter=distmat[shooterID]
-    return distfromshooter
+    try:
+        for i in range(0,10):
+            teamID.append(Data[eventID]['movementData'][f1][5][1:11][i][0])
+            playerID.append(Data[eventID]['movementData'][f1][5][1:11][i][1])
+            playerX.append(Data[eventID]['movementData'][f1][5][1:11][i][2])
+            playerY.append(Data[eventID]['movementData'][f1][5][1:11][i][3])
+        df = pd.DataFrame(columns=['xcord', 'ycord'], index=playerID)
+        df['xcord']=playerX
+        df['ycord']=playerY
+        distmat=pd.DataFrame(distance_matrix(df.values, df.values), index=df.index, columns=df.index)
+        distfromshooter=distmat[shooterID]
+        return distfromshooter
+    except: return -100
 
 #FIRST FIVE ARE ONE TEAM, NEXT 5 ARE OTHER TEAM
 
-def closest_defender_dist(movement, f1, Data, eventID):
-    distfromshooter=get_dist_matrix(movement, f1, Data, eventID)
-    dist_shooter_team1=(distfromshooter)[0:5]
-    dist_shooter_team2=(distfromshooter)[5:11]
-    shooterteam=int(float(Data[eventID]['eventData'][15]))
-    team1=(Data[eventID]['movementData'][5][5][1][0])
-    team2=(Data[eventID]['movementData'][5][5][6][0])
-    closestdefdist= None
-    closestdefid= None
+def closest_defender_dist(movement, f1, Data, eventID, shooterID):
+    distfromshooter=get_dist_matrix(movement, f1, Data, eventID, shooterID)
+    try:
+        dist_shooter_team1=(distfromshooter)[0:5]
+        dist_shooter_team2=(distfromshooter)[5:11]
+        shooterteam=int(float(Data[eventID]['eventData'][15]))
+        team1=(Data[eventID]['movementData'][5][5][1][0])
+        team2=(Data[eventID]['movementData'][5][5][6][0])
+        closestdefdist= None
+        closestdefid= None
 
-    if (shooterteam==team1):
-        closestdefdist=min(dist_shooter_team2)
-        closestdefid=dist_shooter_team2.idxmin()
-    else:
-        closestdefdist=min(dist_shooter_team1)
-        closestdefid=dist_shooter_team1.idxmin()
+        if (shooterteam==team1):
+            closestdefdist=min(dist_shooter_team2)
+            closestdefid=dist_shooter_team2.idxmin()
+        else:
+            closestdefdist=min(dist_shooter_team1)
+            closestdefid=dist_shooter_team1.idxmin()
 
-    return [closestdefid,closestdefdist]
+        return [closestdefid,closestdefdist]
+    except:
+        return -100
 
 #VELOCITY WITH RESPECT TO PLAYER 
-def closest_defender_velocity(movement, f1, f2, Data, eventID):
-    defdist=closest_defender_dist(movement, f2, Data, eventID)
+def closest_defender_velocity(movement, f1, f2, Data, eventID, shooterID):
+    defdist=closest_defender_dist(movement, f2, Data, eventID, shooterID)
     defid=defdist[0]
     defdistance=defdist[1]
-    distmat=get_dist_matrix(movement, f1, Data, eventID)
-    defdistpast=distmat[defid]
-    velocity=(defdistpast-defdistance)/(f2-f1)/.04
-    return velocity
+    distmat=get_dist_matrix(movement, f1, Data, eventID, shooterID)
+    try:
+        defdistpast=distmat[defid]
+        velocity=(defdistpast-defdistance)/(f2-f1)/.04
+        return velocity
+    except:
+        return -100
 
 def catch_and_shoot(movement):
     t_shot = get_shot_index(movement) # Time in frames from beginning of the event
