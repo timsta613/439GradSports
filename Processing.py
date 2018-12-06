@@ -59,11 +59,11 @@ def extractSpecificMovementData(fnames):
 
 
 def extractRandomMovementData(numFiles):
-	zipDir = os.path.join(baseDir, 'Data/nba-movement-data-master/data/')
-	csvDir = os.path.join(baseDir, '/Data/events/')
+	zipDir = os.path.join(dropboxDir, 'Data/nba-movement-data-master/data/')
+	csvDir = os.path.join(dropboxDir, 'Data/events/')
 
 	movementDataDir = os.path.join(codeDir, 'data/movement/')
-	eventDataDir = os.path.join(codeDir, '/data/events/')
+	eventDataDir = os.path.join(codeDir, 'data/events/')
 
 	os.chdir(zipDir)
 	fileList = os.listdir()
@@ -111,11 +111,11 @@ def writeSpeedCSV():
 			t_catch = get_catch_index(movement) # Same
 
 			t_min_before_highest = get_shot_index_old(movement)
-			if t_shot == t_min_before_highest:
-				continue
-			else:
-				print('Event {} - Previously thought Shooter {} caught/shot @ {} but now caught @ {} / shot @ {}'.format(
-					eventID, shooterID, t_min_before_highest, t_catch, t_shot))
+			# if t_shot == t_min_before_highest:
+			# 	continue
+			# else:
+			# 	print('Event {} - Previously thought Shooter {} caught/shot @ {} but now caught @ {} / shot @ {}'.format(
+			# 		eventID, shooterID, t_min_before_highest, t_catch, t_shot))
 
 			if t_catch == t_shot:
 				print('Event {} - Shooter {} caught ball at {} and shot at {}'.format(
