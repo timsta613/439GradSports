@@ -9,8 +9,8 @@ from Utils import *
 
 
 # Change these paths to your local instances before running
-dropboxDir = 'C:/Users/n3tur/Dropbox (MIT)/Class/6_439 Group Project/' # Path to project directory
-codeDir = 'C:/Users/n3tur/Documents/GitHub/439GradSports/' # Path to project code
+dropboxDir = '/home/jimmy/Dropbox (MIT)/6_439 Group Project/' # Path to project directory
+codeDir = '/home/jimmy/Desktop/439GradSports/' # Path to project code
 
 
 def main():
@@ -59,11 +59,11 @@ def extractSpecificMovementData(fnames):
 
 
 def extractRandomMovementData(numFiles):
-	zipDir = os.path.join(dropboxDir, 'Data/nba-movement-data-master/data/')
-	csvDir = os.path.join(dropboxDir, 'Data/events/')
+	zipDir = os.path.join(baseDir, 'Data/nba-movement-data-master/data/')
+	csvDir = os.path.join(baseDir, '/Data/events/')
 
 	movementDataDir = os.path.join(codeDir, 'data/movement/')
-	eventDataDir = os.path.join(codeDir, 'data/events/')
+	eventDataDir = os.path.join(codeDir, '/data/events/')
 
 	os.chdir(zipDir)
 	fileList = os.listdir()
@@ -89,7 +89,7 @@ def extractRandomMovementData(numFiles):
 def writeSpeedCSV():
 	os.chdir(codeDir)
 	gameIDs = [x.split('.')[0] for x in os.listdir('./data/movement/')] # Combs through every movement data file in data directory
-	outfile = 'test/3pt_speeds.csv'
+	outfile = '/home/jimmy/Desktop/test/3pt_speeds.csv'
 
 	for gameID in gameIDs:
 		print(gameID)
@@ -111,11 +111,6 @@ def writeSpeedCSV():
 			t_catch = get_catch_index(movement) # Same
 
 			t_min_before_highest = get_shot_index_old(movement)
-			# if t_shot == t_min_before_highest:
-			# 	continue
-			# else:
-			# 	print('Event {} - Previously thought Shooter {} caught/shot @ {} but now caught @ {} / shot @ {}'.format(
-			# 		eventID, shooterID, t_min_before_highest, t_catch, t_shot))
 
 			if t_catch == t_shot:
 				print('Event {} - Shooter {} caught ball at {} and shot at {}'.format(
@@ -145,7 +140,7 @@ def writeSpeedCSV():
 				if start_frame > 0:
 					v_before_catch[n] = shooter_velocity_between_frames(
 						movement, shooterID, start_frame, t_catch)
-
+			shot_clock = get_shot_clock_at_frame(Data, eventID, t_shot)
 			row = list()
 			row.append(gameID)
 			row.append(shooterID)
@@ -154,13 +149,32 @@ def writeSpeedCSV():
 			row.append(3*movement[0])
 			row.append(t_with_ball)
 			row.append(v_with_ball)
+			row.append(shot_clock)
+			row.append(shooter_dist_at_time(movement,t_shot))
+			row.append(ball_angle(movement, t_shot))
+			row.append(shooter_move_angle(movement, shooterID, t_catch, t_shot))
+			row.append(shooter_move_tobasket(movement,shooterID, t_catch, t_shot))
+			try:
+				row.append(closest_defender_dist(movement, t_shot,Data, eventID, shooterID)[0])                
+			except:
+				row.append(-100)                                
+			try:
+				row.append(closest_defender_dist(movement, t_shot,Data, eventID, shooterID)[1])                
+			except:
+				row.append(-100)                                
+			try:
+				row.append(closest_defender_velocity(movement, t_catch, t_shot,Data, eventID, shooterID))                
+			except:
+				row.append(-100)                                            #row.append(closest_defender_dist(movement, t_shot,Data, eventID, shooterID)[1])
+			#row.append(closest_defender_velocity(movement,t_catch,t_shot, Data, eventID, shooterID))
+			row.append(t_with_ball)
+			row.append(v_with_ball)
+
 			[row.append(v_before_shot[x]) for x in v_before_shot]
 			[row.append(v_before_catch[x]) for x in v_before_catch]
 
 			with open(outfile, 'a+', newline='') as outf:
 				writer = csv.writer(outf)
 				writer.writerow(row)
-
-
 if __name__ == '__main__':
 	main()
