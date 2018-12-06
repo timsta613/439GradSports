@@ -108,6 +108,13 @@ def get_all_3pt(Data):
             all_3pt_data.append({'shooterID': shooterID, 'eventID': eventID, 'movements': get_movements(Data, eventID, shooterID)})
     return all_3pt_data
 
+
+def get_shot_clock_at_frame(Data, eventID, frame):
+    movement_data = Data[eventID]['movementData']
+    moment = movement_data[frame]
+    return moment[3]
+
+
 # movement arg is output of get_movements(Data, eventID, shooterID)
 def get_shot_index(movement):
     shooter_x = movement[1]
