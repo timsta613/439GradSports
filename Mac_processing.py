@@ -14,7 +14,7 @@ codeDir = '/Users/tzhong/Code/Classes/2018/Fall/ids-131/439GradSports'
 
 
 def main():
-	extractSpecificMovementData(movementDataSample)
+#	extractSpecificMovementData(movementDataSample)
 	writeSpeedCSV()
 
 
@@ -111,11 +111,6 @@ def writeSpeedCSV():
 			t_catch = get_catch_index(movement) # Same
 
 			t_min_before_highest = get_shot_index_old(movement)
-			if t_shot == t_min_before_highest:
-				continue
-			else:
-				print('Event {} - Previously thought Shooter {} caught/shot @ {} but now caught @ {} / shot @ {}'.format(
-					eventID, shooterID, t_min_before_highest, t_catch, t_shot))
 
 			if t_catch == t_shot:
 				print('Event {} - Shooter {} caught ball at {} and shot at {}'.format(
