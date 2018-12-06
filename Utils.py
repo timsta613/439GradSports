@@ -384,7 +384,7 @@ def get_dist_matrix(movement, f1, Data):
 #FIRST FIVE ARE ONE TEAM, NEXT 5 ARE OTHER TEAM
 
 def closest_defender_dist(movement, f1, Data):
-    distfromshooter=get_dist_matrix(movement, f1)
+    distfromshooter=get_dist_matrix(movement, f1, Data)
     dist_shooter_team1=(distfromshooter)[0:5]
     dist_shooter_team2=(distfromshooter)[5:11]
     shooterteam=int(float(Data[eventID]['eventData'][15]))
