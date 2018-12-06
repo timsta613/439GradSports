@@ -364,7 +364,7 @@ def position_all(Data, eventID):
     return position
 
 #FOLLOWING FUNCTION RETURNS DISTANCE OF ALL PLAYERS FROM SHOOTER AT FRAME F1
-def get_dist_matrix(movement, f1, Data):
+def get_dist_matrix(movement, f1, Data, eventID):
     playerID=[]
     playerX=[]
     playerY=[]
@@ -383,8 +383,8 @@ def get_dist_matrix(movement, f1, Data):
 
 #FIRST FIVE ARE ONE TEAM, NEXT 5 ARE OTHER TEAM
 
-def closest_defender_dist(movement, f1, Data):
-    distfromshooter=get_dist_matrix(movement, f1, Data)
+def closest_defender_dist(movement, f1, Data, eventID):
+    distfromshooter=get_dist_matrix(movement, f1, Data, eventID)
     dist_shooter_team1=(distfromshooter)[0:5]
     dist_shooter_team2=(distfromshooter)[5:11]
     shooterteam=int(float(Data[eventID]['eventData'][15]))
@@ -403,11 +403,11 @@ def closest_defender_dist(movement, f1, Data):
     return [closestdefid,closestdefdist]
 
 #VELOCITY WITH RESPECT TO PLAYER 
-def closest_defender_velocity(movement, f1, f2, Data):
-    defdist=closest_defender_dist(movement, f2)
+def closest_defender_velocity(movement, f1, f2, Data, eventID):
+    defdist=closest_defender_dist(movement, f2, Data, eventID)
     defid=defdist[0]
     defdistance=defdist[1]
-    distmat=get_dist_matrix(movement, f1)
+    distmat=get_dist_matrix(movement, f1, Data, eventID)
     defdistpast=distmat[defid]
     velocity=(defdistpast-defdistance)/(f2-f1)/.04
     return velocity
