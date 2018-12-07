@@ -150,7 +150,7 @@ def writeSpeedCSV():
 				row.append(ishome(Data,eventID,shooterID))
 				row.append(shooter_angle_at_time(movement,t_shot))
 				row.append(shooter_xy_at_time(movement,t_shot)[0])
-				row.append(shooter_dist_at_time(movement,t_shot)[1])
+				row.append(shooter_xy_at_time(movement,t_shot)[1])
 				row.append(shot_clock)
 				row.append(is_cns)
 				row.append(3*movement[0])
@@ -179,7 +179,6 @@ def writeSpeedCSV():
 
 				[row.append(v_before_shot[x]) for x in v_before_shot]
 				[row.append(v_before_catch[x]) for x in v_before_catch]
-
 				with open(outfile, 'a+', newline='') as outf:
 					writer = csv.writer(outf)
 					writer.writerow(row)
