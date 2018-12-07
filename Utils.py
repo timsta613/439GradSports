@@ -436,3 +436,44 @@ def catch_and_shoot(movement):
     else:
         return False
    
+def ishome(Data, eventID, shooterID):
+
+    try:
+        shooterteam=int(float(Data[eventID]['eventData'][15]))
+        team1=(Data[eventID]['movementData'][0][5][1][0])
+        team2=(Data[eventID]['movementData'][0][5][6][0])
+
+        if (shooterteam==team1):
+            return True
+
+        else:
+            return False
+
+    except:
+        return -100
+    
+def shooter_xy_at_time(movement,f1):
+    shooter_x=movement[1][f1]
+    shooter_y=movement[2][f1]
+    
+    return [shooter_x, shooter_y]
+
+def shooter_angle_at_time(movement,f1):
+    shooter_x=movement[1][f1]
+    shooter_y=movement[2][f1]
+    basketx=0 
+    basket1x=88.65
+    basket2x=5.35
+    baskety=25
+    if basket1x-shooter_x< shooter_x-basket2x:
+        basketx=basket1x
+    else:
+        basketx=basket2x
+    a = np.array([shooter_x, shooter_y])
+    b = np.array([basketx, baskety])
+    c = np.array([shooter_x, baskety])
+    ba = a - b
+    bc = c - b
+    cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+    angle = np.arccos(cosine_angle)
+    return angle*57.2958
