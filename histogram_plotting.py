@@ -36,7 +36,8 @@ plt.set_cmap('gray_r')
 plt.colorbar()
 plt.xlabel("x coordinate (ft)", fontsize=20)
 plt.ylabel("y coordinate (ft)", fontsize=20)
-plt.imshow(court, zorder=0, extent=[0,94,0,50])
+#plt.imshow(court, zorder=0, extent=[0,94,0,50])
+plt.imshow(court, extent=[0,94,0,50])
 #plt.xlim(0,95)
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
@@ -52,10 +53,36 @@ edges_y = range(0,52,2)
 H_2, xedges_2, yedges_2 = np.histogram2d(location_y, location_x, bins=(edges_y,edges_x), weights=w)
 
 fraction_in = H_2/H
-fraction_in[H < 40] = 0
+fraction_in[H <= 5] = 0
 fraction_in[fraction_in == 0] = np.nan
 #plt.imshow(fraction_in,extent=[yedges[0], yedges[-1], xedges[0], xedges[-1]])
 plt.imshow(fraction_in,extent=[0,94,0,50])
+plt.set_cmap('gray_r')
+plt.colorbar()
+plt.xlabel("x coordinate (ft)", fontsize=20)
+plt.ylabel("y coordinate (ft)", fontsize=20)
+#plt.imshow(court, zorder=0, extent=[0,94,50,0])
+#plt.imshow(court, extent=[0,94,50,0])
+plt.imshow(court, extent=[0,94,50,0])
+#plt.xlim(0,95)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.show()
+
+# plot third heatmap
+plt.figure()
+#plt.figure(figsize=(15, 11.5))
+court = plt.imread("fullcourt.png")
+edges_x = range(0,96,2)
+edges_y = range(0,52,2)
+#H, xedges, yedges = np.histogram2d(location_x, location_y, bins=95, weights=w)
+H_2, xedges_2, yedges_2 = np.histogram2d(location_y, location_x, bins=(edges_y,edges_x), weights=w)
+
+fraction_in = H_2/H
+H_2[H <= 5] = 0
+fraction_in[fraction_in == 0] = np.nan
+#plt.imshow(fraction_in,extent=[yedges[0], yedges[-1], xedges[0], xedges[-1]])
+plt.imshow(H_2,extent=[0,94,0,50])
 plt.set_cmap('gray_r')
 plt.colorbar()
 plt.xlabel("x coordinate (ft)", fontsize=20)
