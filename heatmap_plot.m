@@ -49,10 +49,8 @@ ylim([0.25 0.4])
 %% 
 
 
-d_d_lin = [0:1:20];
-d_d_size = size(defender_d_lin,2)-1;
-
-matrix_d_vs_dd = zeros(d_d_size, d_size);
+d_d_lin = [1:1:20];
+d_d_size = size(d_d_lin,2)-1;
 
 dd_1d = zeros(1,d_d_size);
 dd_1d_make = zeros(1,d_d_size);
@@ -72,21 +70,21 @@ end
 %% 4th plot
 bar(dd_1d)
 xticks([1:1:20])
-xticklabels({'0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19'})
+xticklabels({'1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19'})
 xlabel('distance of defender (x feet to x+1 feet)')
 ylabel('counts')
 
 %% fifth plot
 bar(dd_1d_make)
 xticks([1:1:20])
-xticklabels({'0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19'})
+xticklabels({'1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19'})
 xlabel('distance of defender (x feet to x+1 feet)')
 ylabel('counts')
 
 %% sixth plot
 bar(dd_1d_make./dd_1d)
 xticks([1:1:20])
-xticklabels({'0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19'})
+xticklabels({'1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19'})
 xlabel('distance of defender (x feet to x+1 feet)')
 ylabel('fraction made')
 ylim([0.25 0.45])
