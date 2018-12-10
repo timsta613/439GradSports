@@ -1,7 +1,9 @@
 import csv
 import json
 import numpy as np
-
+import math
+import pandas as pd
+from scipy.spatial import distance_matrix
 
 # Update of readJson_test() which matches movement data to the event data by event ID
 # Pass in the game ID to match
@@ -107,6 +109,13 @@ def get_all_3pt(Data):
             #print(shooterID)
             all_3pt_data.append({'shooterID': shooterID, 'eventID': eventID, 'movements': get_movements(Data, eventID, shooterID)})
     return all_3pt_data
+
+
+def get_shot_clock_at_frame(Data, eventID, frame):
+    movement_data = Data[eventID]['movementData']
+    moment = movement_data[frame]
+    return moment[3]
+
 
 # movement arg is output of get_movements(Data, eventID, shooterID)
 def get_shot_index(movement):
@@ -238,8 +247,6 @@ def catchandshoot(Data, eventID, shooterID):
     else:
         return False
 
-    
-    
 def shooter_move_tobasket(movement,shooterID, f1, f2):
 
     shooter_x, shooter_y=zip(*shooter_movement_between_frames(movement, shooterID, f1, f2))
@@ -364,53 +371,61 @@ def position_all(Data, eventID):
     return position
 
 #FOLLOWING FUNCTION RETURNS DISTANCE OF ALL PLAYERS FROM SHOOTER AT FRAME F1
-def get_dist_matrix(movement, f1, Data, eventID):
+def get_dist_matrix(movement, f1, Data, eventID, shooterID):
     playerID=[]
     playerX=[]
     playerY=[]
     teamID=[]
-    for i in range(0,10):
-        teamID.append(Data[eventID]['movementData'][f1][5][1:11][i][0])
-        playerID.append(Data[eventID]['movementData'][f1][5][1:11][i][1])
-        playerX.append(Data[eventID]['movementData'][f1][5][1:11][i][2])
-        playerY.append(Data[eventID]['movementData'][f1][5][1:11][i][3])
-    df = pd.DataFrame(columns=['xcord', 'ycord'], index=playerID)
-    df['xcord']=playerX
-    df['ycord']=playerY
-    distmat=pd.DataFrame(distance_matrix(df.values, df.values), index=df.index, columns=df.index)
-    distfromshooter=distmat[shooterID]
-    return distfromshooter
+    try:
+        for i in range(0,10):
+            teamID.append(Data[eventID]['movementData'][f1][5][1:11][i][0])
+            playerID.append(Data[eventID]['movementData'][f1][5][1:11][i][1])
+            playerX.append(Data[eventID]['movementData'][f1][5][1:11][i][2])
+            playerY.append(Data[eventID]['movementData'][f1][5][1:11][i][3])
+        df = pd.DataFrame(columns=['xcord', 'ycord'], index=playerID)
+        df['xcord']=playerX
+        df['ycord']=playerY
+        distmat=pd.DataFrame(distance_matrix(df.values, df.values), index=df.index, columns=df.index)
+        distfromshooter=distmat[shooterID]
+        return distfromshooter
+    except: return -100
 
 #FIRST FIVE ARE ONE TEAM, NEXT 5 ARE OTHER TEAM
 
-def closest_defender_dist(movement, f1, Data, eventID):
-    distfromshooter=get_dist_matrix(movement, f1, Data, eventID)
-    dist_shooter_team1=(distfromshooter)[0:5]
-    dist_shooter_team2=(distfromshooter)[5:11]
-    shooterteam=int(float(Data[eventID]['eventData'][15]))
-    team1=(Data[eventID]['movementData'][5][5][1][0])
-    team2=(Data[eventID]['movementData'][5][5][6][0])
-    closestdefdist= None
-    closestdefid= None
+def closest_defender_dist(movement, f1, Data, eventID, shooterID):
+    distfromshooter=get_dist_matrix(movement, f1, Data, eventID, shooterID)
+    try:
+        dist_shooter_team1=(distfromshooter)[0:5]
+        dist_shooter_team2=(distfromshooter)[5:11]
+        shooterteam=int(float(Data[eventID]['eventData'][15]))
+        team1=(Data[eventID]['movementData'][5][5][1][0])
+        team2=(Data[eventID]['movementData'][5][5][6][0])
+        closestdefdist= None
+        closestdefid= None
 
-    if (shooterteam==team1):
-        closestdefdist=min(dist_shooter_team2)
-        closestdefid=dist_shooter_team2.idxmin()
-    else:
-        closestdefdist=min(dist_shooter_team1)
-        closestdefid=dist_shooter_team1.idxmin()
+        if (shooterteam==team1):
+            closestdefdist=min(dist_shooter_team2)
+            closestdefid=dist_shooter_team2.idxmin()
+        else:
+            closestdefdist=min(dist_shooter_team1)
+            closestdefid=dist_shooter_team1.idxmin()
 
-    return [closestdefid,closestdefdist]
+        return [closestdefid,closestdefdist]
+    except:
+        return -100
 
 #VELOCITY WITH RESPECT TO PLAYER 
-def closest_defender_velocity(movement, f1, f2, Data, eventID):
-    defdist=closest_defender_dist(movement, f2, Data, eventID)
+def closest_defender_velocity(movement, f1, f2, Data, eventID, shooterID):
+    defdist=closest_defender_dist(movement, f2, Data, eventID, shooterID)
     defid=defdist[0]
     defdistance=defdist[1]
-    distmat=get_dist_matrix(movement, f1, Data, eventID)
-    defdistpast=distmat[defid]
-    velocity=(defdistpast-defdistance)/(f2-f1)/.04
-    return velocity
+    distmat=get_dist_matrix(movement, f1, Data, eventID, shooterID)
+    try:
+        defdistpast=distmat[defid]
+        velocity=(defdistpast-defdistance)/(f2-f1)/.04
+        return velocity
+    except:
+        return -100
 
 def catch_and_shoot(movement):
     t_shot = get_shot_index(movement) # Time in frames from beginning of the event
@@ -421,3 +436,44 @@ def catch_and_shoot(movement):
     else:
         return False
    
+def ishome(Data, eventID, shooterID):
+
+    try:
+        shooterteam=int(float(Data[eventID]['eventData'][15]))
+        team1=(Data[eventID]['movementData'][0][5][1][0])
+        team2=(Data[eventID]['movementData'][0][5][6][0])
+
+        if (shooterteam==team1):
+            return True
+
+        else:
+            return False
+
+    except:
+        return -100
+    
+def shooter_xy_at_time(movement,f1):
+    shooter_x=movement[1][f1]
+    shooter_y=movement[2][f1]
+    
+    return [shooter_x, shooter_y]
+
+def shooter_angle_at_time(movement,f1):
+    shooter_x=movement[1][f1]
+    shooter_y=movement[2][f1]
+    basketx=0 
+    basket1x=88.65
+    basket2x=5.35
+    baskety=25
+    if basket1x-shooter_x< shooter_x-basket2x:
+        basketx=basket1x
+    else:
+        basketx=basket2x
+    a = np.array([shooter_x, shooter_y])
+    b = np.array([basketx, baskety])
+    c = np.array([shooter_x, baskety])
+    ba = a - b
+    bc = c - b
+    cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+    angle = np.arccos(cosine_angle)
+    return angle*57.2958
