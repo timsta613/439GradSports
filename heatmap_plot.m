@@ -123,7 +123,7 @@ ax.XData = {'22','24','26','28'}
 ax.YData = {'0','2','4','6','8','10','12','14','16'}
 xlabel('distance of shot (x feet to x+2 feet)')
 ylabel('distance of defender (x feet to x+2 feet)')
-
+colormap default
 %%
 heatmap(mat_dd_vs_d_make./mat_dd_vs_d)
 ax = gca;
@@ -131,6 +131,6 @@ ax.XData = {'22','24','26','28'}
 ax.YData = {'0','2','4','6','8','10','12','14','16'}
 xlabel('distance of shot (x feet to x+2 feet)')
 ylabel('distance of defender (x feet to x+2 feet)')
-
+colormap default
 
 
